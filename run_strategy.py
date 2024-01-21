@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-import sys
+import sys, os
 import argparse
 import importlib
 import inspect
 from datetime import datetime, timedelta
 from lumibot.traders import Trader
 from lumibot.entities import TradingFee
+import credentials
+print(credentials.__file__)
 
 def parse_arguments():
     """Parse command line arguments for running the strategy."""
@@ -87,9 +89,15 @@ def run_strategy(strategy_class, is_live, broker_choice, start_date, end_date):
 if __name__ == "__main__":
     # Main execution block
     args = parse_arguments()
-    module_name = args.strategy_file.rsplit('.', 1)[0]
+    module_name = os.path.splitext(os.path.basename(args.strategy_file))[0]
 
     try:
+        # Add the path to the strategy directory to sys.path
+        strategy_relative_path = os.path.dirname(args.strategy_file)
+        current_directory = os.getcwd()
+        absolute_strategy_path = os.path.join(current_directory, strategy_relative_path)
+        sys.path.append(absolute_strategy_path)
+
         # Dynamically import the strategy module and find the strategy class
         strategy_module = importlib.import_module(module_name)
         strategy_class = find_strategy_class(strategy_module)
